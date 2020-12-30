@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=0.1
+Name=Linux-ck Autobuild Daemon
+Terminal=false
+Type=Application
+NoDisplay=true
+GenericName=linux-ck-autobuild
+Comment=A tool to automatically build ck kernels
+Exec=linux-ck-autobuild-daemon
+Icon=update-manager

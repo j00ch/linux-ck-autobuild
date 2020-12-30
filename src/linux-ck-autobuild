@@ -1,0 +1,123 @@
+#!/bin/bash
+# linux-ck-autobuild
+VERSION=0.1
+# Author: Jochum D, jooch (at) gmx (dot) com
+# License: GPL3
+# About: This script will automatically build specified ck kernels
+# Usage: Run 'linux-ck-autobuild' or 'linux-ck-autobuild -h' for more details.
+# URL: https://github.com/j00ch/linux-ck-autobuild
+
+program_name="linux-ck-autobuild"
+
+function print_help {
+echo "
+$program_name, version $VERSION
+
+A tool to automatically build ck kernels.
+
+Options:
+-h,	--help	Display this help
+-c,		Create and/or set options
+
+--enable-autostart 	Enable daemon to fully automate build
+--disable-autostart	Disable daemon (default)
+
+If you don't have a graphical environment you can use the systemd option:
+'systemctl enable $program_name@<username>.service'
+"
+exit 1
+}
+
+function enable_daemon {
+check_service="$(systemctl is-active $program_name.service)"
+[[ $check_service = "active" ]] && echo "ERROR: systemd service is currently enabled, you should disable that first." && exit 1 || false
+yes_or_no "$msg This will install the daemon into the user's autostart folder, proceed?" &&
+cp /etc/$program_name/$program_name-daemon.desktop /home/$USER/.config/autostart/$program_name-daemon.desktop
+echo "Installed $program_name-daemon.desktop in /home/$USER/.config/autostart"
+exit 1
+}
+
+function disable_daemon {
+yes_or_no "$msg This will remove the daemon from user's autostart folder, proceed?" &&
+rm /home/$USER/.config/autostart/$program_name-daemon.desktop
+echo "Removed $program_name-daemon.desktop from /home/$USER/.config/autostart"
+exit 1
+}
+
+function yes_or_no {
+    while true; do
+        read -p "$* [y/n]: " yn
+        case $yn in
+            [Yy]*) return ;;  
+            [Nn]*) echo "Aborted" ; exit 1 ;;
+        esac
+    done
+}
+
+function load_config {
+if [ -r /home/$USER/.config/$program_name/$program_name.conf ]; then
+    . /home/$USER/.config/$program_name/$program_name.conf
+else
+	. /etc/$program_name/default.conf
+	yes_or_no "$msg Configuration not found, copy default config?" &&
+	mkdir /home/$USER/.config/$program_name/
+	cp /etc/$program_name/default.conf /home/$USER/.config/$program_name/$program_name.conf
+	edit_config
+fi
+}
+
+function edit_config {
+	if [ -r /usr/bin/$editor ]; then
+		$editor /home/$USER/.config/$program_name/$program_name.conf
+		. /home/$USER/.config/$program_name/$program_name.conf
+	else
+		echo "Please setup your config and restart:
+		/home/$USER/.config/$program_name/$program_name.conf"
+		exit 1
+	fi
+}
+
+function check_build_dir {
+	if	[ -r $BUILDDIR/linux-ck/PKGBUILD ]; then
+	git -C $BUILDDIR/linux-ck reset --hard --quiet
+	git -C $BUILDDIR/linux-ck pull --quiet
+	else
+	yes_or_no "$msg PKGBUILD not found at configured location, set up now?" $$
+	mkdir -p $BUILDDIR
+	echo "Cloning AUR package"
+	git -C $BUILDDIR/linux-ck clone https://aur.archlinux.org/linux-ck.git --quiet
+	fi
+}
+function main_program {
+	load_config
+	check_build_dir
+	. /etc/$program_name/subarches
+	latest_version=$(curl -s https://aur.archlinux.org/packages/linux-ck | grep -A 1 'pkgdetails" class="box' | grep -Po '\d.\d.\d.')
+	sed -i '/^build().*/a MAKEFLAGS="'$makeflags'"' $BUILDDIR/linux-ck/PKGBUILD
+	for element in "${SUBARCH[@]}"; do
+		subarch_name="arch_$element"
+		if [ -z "$USE_MODPROBE_DB" ]; then 
+		sed -i '/pkgbase=/c\pkgbase=linux-ck-'${!subarch_name}'' $BUILDDIR/linux-ck/PKGBUILD
+		else
+		sed -i '/pkgbase=/c\pkgbase=linux-ck-'${!subarch_name}'-modprobed' $BUILDDIR/linux-ck/PKGBUILD
+		fi
+		sed -i '/pkgver=/c\pkgver='$latest_version'' $BUILDDIR/linux-ck/PKGBUILD
+		sed -i '/_localmodcfg=/c\_localmodcfg='$USE_MODPROBE_DB'' $BUILDDIR/linux-ck/PKGBUILD
+		sed -i '/_subarch=/c\_subarch='$element'' $BUILDDIR/linux-ck/PKGBUILD
+		echo "$(date +"%Y-%m-%d_%H:%M") Starting kernel build ${!subarch_name}-$latest_version"
+		(cd $BUILDDIR/linux-ck && makepkg -C) > $BUILDDIR/linux-ck/linux-ck-${!subarch_name}-$latest_version.log
+		echo "$(date +"%Y-%m-%d_%H:%M") End kernel build ${!subarch_name}-$latest_version"
+	done
+	echo "$latest_version" > $BUILDDIR/linux-ck/.last_build
+}
+
+[[ $1 = "-h" ]] && print_help || 
+[[ $1 = "--help" ]] && print_help || 
+[[ $1 = "--enable_autostart" ]] && enable_autostart || 
+[[ $1 = "--disable-autostart" ]] && disable_autostart || 
+[[ $1 = "-c" ]] && load_config && edit_config || 
+
+main_program
+$USER_COMMAND1
+$USER_COMMAND2
+$USER_COMMAND3

@@ -1,0 +1,13 @@
+[Unit]
+Description=Linux-ck Autobuild Daemon
+
+[Service]
+User=%I
+Type=simple
+ExecStart=/usr/bin/linux-ck-autobuild-daemon
+StandardOutput=null
+PrivateTmp=true
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
