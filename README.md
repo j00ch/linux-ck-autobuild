@@ -43,7 +43,7 @@ or
 
 ``sudo systemd enable linux-ck-autobuild@[your-username].service``
 
-The first option is recommended if you run a graphical user environment, which gives the notifies the user in case of an update and the option to postpone the build.
+The first option is recommended if you run a graphical user environment, which notifies the user in case of an update and the option to postpone the build.
 
 The second option is handy for servers that don't have a console, it is advisable to look at the ``makeflags`` and ``maxload`` option in the config. The configuration can be accessed at any time by running ``linux-ck-autobuild -c``
 from a command line.
