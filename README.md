@@ -26,8 +26,9 @@ https://aur.archlinux.org/packages/linux-ck-autobuild
 
 from a command line simply run:
 
-``git clone https://aur.archlinux.org/packages/linux-ck-autobuild
-makepkg -si``
+``git clone https://aur.archlinux.org/packages/linux-ck-autobuild``
+
+``makepkg -si``
 
 ## Usage
 First you'll need to setup the configuration file, simply by running ``linux-ck-autobuild`` from a command line. The script will notify the user about the missing configuration and copy the default config to your home folder. Then the script will open the copied config where you can manually edit it to your preferences.
