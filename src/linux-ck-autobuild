@@ -1,6 +1,6 @@
 #!/bin/bash
 # linux-ck-autobuild
-VERSION=0.1
+VERSION=0.1.1
 # Author: Jochum D, jooch (at) gmx (dot) com
 # License: GPL3
 # About: This script will automatically build specified ck kernels
@@ -82,17 +82,17 @@ function check_build_dir {
 	git -C $BUILDDIR/linux-ck reset --hard --quiet
 	git -C $BUILDDIR/linux-ck pull --quiet
 	else
-	yes_or_no "$msg PKGBUILD not found at configured location, set up now?" $$
+	yes_or_no "$msg PKGBUILD not found at configured location, set up now?" &&
 	mkdir -p $BUILDDIR
 	echo "Cloning AUR package"
-	git -C $BUILDDIR/linux-ck clone https://aur.archlinux.org/linux-ck.git --quiet
+	git -C $BUILDDIR clone https://aur.archlinux.org/linux-ck.git --quiet
 	fi
 }
 function main_program {
 	load_config
 	check_build_dir
 	. /etc/$program_name/subarches
-	latest_version=$(curl -s https://aur.archlinux.org/packages/linux-ck | grep -A 1 'pkgdetails" class="box' | grep -Po '\d.\d.\d.')
+	latest_version=$(curl -s https://aur.archlinux.org/packages/linux-ck | grep -A 1 'pkgdetails" class="box' | grep -Po '\d.\d.\D.')
 	sed -i '/^build().*/a MAKEFLAGS="'$makeflags'"' $BUILDDIR/linux-ck/PKGBUILD
 	for element in "${SUBARCH[@]}"; do
 		subarch_name="arch_$element"
@@ -101,7 +101,6 @@ function main_program {
 		else
 		sed -i '/pkgbase=/c\pkgbase=linux-ck-'${!subarch_name}'-modprobed' $BUILDDIR/linux-ck/PKGBUILD
 		fi
-		sed -i '/pkgver=/c\pkgver='$latest_version'' $BUILDDIR/linux-ck/PKGBUILD
 		sed -i '/_localmodcfg=/c\_localmodcfg='$USE_MODPROBE_DB'' $BUILDDIR/linux-ck/PKGBUILD
 		sed -i '/_subarch=/c\_subarch='$element'' $BUILDDIR/linux-ck/PKGBUILD
 		echo "$(date +"%Y-%m-%d_%H:%M") Starting kernel build ${!subarch_name}-$latest_version"
