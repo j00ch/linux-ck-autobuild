@@ -1,6 +1,6 @@
 #!/bin/bash
 # linux-ck-autobuild-daemon.sh
-VERSION=0.1.1
+VERSION=0.1.2
 # Author: Jochum D, jooch (at) gmx (dot) com
 # License: GPL3
 # About: This script is part of linux-ck-autobuild, checks for new versions and automatically
@@ -22,8 +22,8 @@ function dialog {
 	if zenity --text="New kernel version detected ($latest_version), build wil start in $TIMEOUT$TIMEOUT_UNIT" --title="$window_title" --progress --percentage=0 --auto-close; then
 		./linux-ck-autobuild
 	else
-		zenity --info --width=350 --title="$window_title" --text="Update postponed for $postponed"
-		sleep $postponed
+		zenity --info --width=350 --title="$window_title" --text="Update postponed for $POSTPONED"
+		sleep $POSTPONED
 	fi
 	return
 }
@@ -32,7 +32,7 @@ if [ -r /home/$USER/.config/$program_name/$program_name.conf ]; then
 	. /home/$USER/.config/$program_name/$program_name.conf
 	while true
 	do
-		latest_version=$(curl -s https://aur.archlinux.org/packages/linux-ck | grep -A 1 'pkgdetails" class="box' | grep -Po '\d.\d.\D.')
+		latest_version=$(curl -s https://aur.archlinux.org/packages/linux-ck | grep -A 1 'pkgdetails" class="box' | grep -Po '\d.\d.\D.\D.')
 		last_build=$(cat $BUILDDIR/linux-ck/.last_build)
 
 		echo "Checking latest kernel version"
