@@ -1,6 +1,6 @@
 #!/bin/bash
 # linux-ck-autobuild
-VERSION=0.1.2
+VERSION=0.1.3
 # Author: Jochum D, jooch (at) gmx (dot) com
 # License: GPL3
 # About: This script will automatically build specified ck kernels
@@ -92,7 +92,7 @@ function main_program {
 	load_config
 	check_build_dir
 	. /etc/$program_name/subarches
-	latest_version=$(curl -s https://aur.archlinux.org/packages/linux-ck | grep -A 1 'pkgdetails" class="box' | grep -Po '\d.\d.\D.\D.')
+	latest_version=$(curl -s https://aur.archlinux.org/packages/linux-ck | grep -o -P '(?<=linux-ck ).*(?=</h2)')
 	sed -i '/^build().*/a MAKEFLAGS="'$makeflags'"' $BUILDDIR/linux-ck/PKGBUILD
 	for element in "${SUBARCH[@]}"; do
 		subarch_name="arch_$element"
