@@ -1,6 +1,6 @@
 #!/bin/bash
 # linux-ck-autobuild-daemon.sh
-VERSION=0.1.3
+VERSION=0.4.0
 # Author: Jochum D, jooch (at) gmx (dot) com
 # License: GPL3
 # About: This script is part of linux-ck-autobuild, checks for new versions and automatically
@@ -20,7 +20,13 @@ function dialog {
 		done
 	) |
 	if zenity --text="New kernel version detected ($latest_version), build wil start in $TIMEOUT$TIMEOUT_UNIT" --title="$window_title" --progress --percentage=0 --auto-close; then
-		./linux-ck-autobuild
+		echo "Waiting for sufficient system resources"
+		load_avg=$(cat /proc/loadavg | cut -c 11-14)
+		while true; do
+		[[ "$load_avg" < "0.20" ]] && break
+		sleep 30s
+		done
+		linux-ck-autobuild
 	else
 		zenity --info --width=350 --title="$window_title" --text="Update postponed for $POSTPONED"
 		sleep $POSTPONED
@@ -30,6 +36,7 @@ function dialog {
 
 if [ -r /home/$USER/.config/$program_name/$program_name.conf ]; then
 	. /home/$USER/.config/$program_name/$program_name.conf
+	check_service="$(systemctl is-active linux-ck-autobuild@$USER.service)"
 	while true
 	do
 		latest_version=$(curl -s https://aur.archlinux.org/packages/linux-ck | grep -o -P '(?<=linux-ck ).*(?=</h2)')
@@ -40,8 +47,25 @@ if [ -r /home/$USER/.config/$program_name/$program_name.conf ]; then
 			echo "Kernel is up to date"
 			sleep $WATCHDOG_INTERVAL
 		else
-			[[ $check_service = "active" ]] && linux-ck-autobuild && return || false
+			if [[ $service_state = "active" ]] || [ -r /etc/systemd/system/multi-user.target.wants/linux-ck-autobuild@$USER.service ]; then
+			
+			option=("Disable systemd service" "Disable autostart" "Quit")
+			answer=$(zenity  --list --width=350 --title="$window_title" --text="<b>ERROR</b>: systemd service is enabled or active." --hide-header --column=Option "${option[@]}")
+			case "$answer" in 
+				"${option[0]}") 
+				gksu systemctl disable linux-ck-autobuild@$USER.service
+				;; 
+				"${option[1]}") 
+				rm /home/$USER/.config/autostart/$program_name-daemon.desktop && exit 1
+				;; 
+				"${option[2]}") 
+				exit 1
+				;; 
+			esac
+
+			else
 			dialog
+			fi
 		fi
 	done
 else
