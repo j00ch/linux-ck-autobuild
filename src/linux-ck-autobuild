@@ -84,7 +84,7 @@ mv /home/$USER/.config/$program_name/$program_name.conf /home/$USER/.config/$pro
 cp /etc/$program_name/default.conf /home/$USER/.config/$program_name/$program_name.conf
 
 for element in "${UPDATE[@]}"; do
-	sed -i '/^#/!s/'$element'=".*"/'$element'="'${!element}'"/g' /home/$USER/.config/$program_name/$program_name.conf
+	sed -i '/^#/!s|'$element'=".*"|'$element'="'${!element}'"|g' /home/$USER/.config/$program_name/$program_name.conf
 done
 
 sed -i '/^#/!s/SUBARCH=(.*)/SUBARCH=( '"${SUBARCH[*]}"' )/g' /home/$USER/.config/$program_name/$program_name.conf
