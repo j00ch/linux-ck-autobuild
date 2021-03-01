@@ -15,9 +15,12 @@ This means you'll have to check for updates, check the build and then build anot
 ## Features
 
 * Automatically builds desired architectures
-* Daemon which monitors for new releases and automatically starts build script
+* Daemon which monitors for new releases and automatically starts the build script
+* Option to limit system resources
 * Compatible with modprobe-db
 * Custom commands that can be run after the build script
+* Automatically checks the ck repo for pre-built kernels
+* Option to add build kernels to your local repo
 
 ## Installing
 
@@ -26,12 +29,12 @@ https://aur.archlinux.org/packages/linux-ck-autobuild
 
 from a command line simply run:
 
-``git clone https://aur.archlinux.org/packages/linux-ck-autobuild``
+``git clone https://aur.archlinux.org/linux-ck-autobuild.git``
 
 ``makepkg -si``
 
 ## Usage
-First you'll need to setup the configuration file, simply by running ``linux-ck-autobuild`` from a command line. The script will notify the user about the missing configuration and copy the default config to your home folder. Then the script will open the copied config where you can manually edit it to your preferences.
+First you'll need to setup the configuration file, simply by running ``linux-ck-autobuild`` from a command line. The script will notify you about configuration missing and will copy the default config to your home folder. The script will then open the new config where you can manually edit it to your preferences. Directions are given in the configuration file.
 
 The minimum options you'll have to modify will be the SUBARCH (the micro architectures you want to build) and probably the BUILDDIR, which sets the location where the builds take place (don't worry, you don't have to download anything yourself).
 
@@ -41,9 +44,8 @@ If you want to fully automate the build script you can enable the daemon by runn
 
 or
 
-``sudo systemd enable linux-ck-autobuild@[your-username].service``
+``sudo systemd enable linux-ck-autobuild@$USER.service``
 
 The first option is recommended if you run a graphical user environment, which notifies the user in case of an update and the option to postpone the build.
 
-The second option is handy for servers that don't have a console, it is advisable to look at the ``makeflags`` and ``maxload`` option in the config. The configuration can be accessed at any time by running ``linux-ck-autobuild -c``
-from a command line.
+The second option is handy for servers that don't have a console, it is advisable to look at the ``makeflags`` and ``maxload`` option in the config. The configuration can be accessed at any time by running ``linux-ck-autobuild -c`` from a command line.
