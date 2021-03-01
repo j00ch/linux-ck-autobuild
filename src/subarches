@@ -1,5 +1,5 @@
 arch_1="k8"
-arch_2="kx"
+arch_2="k8sse3"
 arch_3="k10"
 arch_4="barcelona"
 arch_5="bobcat"
