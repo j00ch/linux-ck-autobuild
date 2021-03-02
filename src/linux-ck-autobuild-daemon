@@ -1,6 +1,6 @@
 #!/bin/bash
 # linux-ck-autobuild-daemon.sh
-VERSION=0.4.0
+VERSION=0.4.1
 # Author: Jochum D, jooch (at) gmx (dot) com
 # License: GPL3
 # About: This script is part of linux-ck-autobuild, checks for new versions and automatically
@@ -21,9 +21,9 @@ function dialog {
 	) |
 	if zenity --text="New kernel version detected ($latest_version), build wil start in $TIMEOUT$TIMEOUT_UNIT" --title="$window_title" --progress --percentage=0 --auto-close; then
 		echo "Waiting for sufficient system resources"
-		load_avg=$(cat /proc/loadavg | cut -c 11-14)
+		load_avg=$(cat /proc/loadavg | cut -c 6-9)
 		while true; do
-		[[ "$load_avg" < "0.20" ]] && break
+		[[ "$load_avg" < "$load_target" ]] && break
 		sleep 30s
 		done
 		linux-ck-autobuild

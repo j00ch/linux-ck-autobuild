@@ -1,6 +1,6 @@
 #!/bin/bash
 # linux-ck-autobuild
-VERSION=0.4.0
+VERSION=0.4.1
 # Author: Jochum D, jooch (at) gmx (dot) com
 # License: GPL3
 # About: This script will automatically build specified ck kernels
