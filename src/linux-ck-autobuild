@@ -79,7 +79,7 @@ fi
 
 function update_config {
 
-UPDATE=( editor BUILDDIR USE_MODPROBE_DB maxload makeflags USE_KERNEL_COMPRESS_METHOD NOMODULES WATCHDOG_INTERVAL TIMEOUT TIMEOUT_UNIT POSTPONED USER_COMMAND1 USER_COMMAND2 USER_COMMAND3)
+UPDATE=( editor BUILDDIR USE_MODPROBE_DB maxload makeflags USE_KERNEL_COMPRESS_METHOD NOMODULES MODULESSELECTION WATCHDOG_INTERVAL TIMEOUT TIMEOUT_UNIT POSTPONED USER_COMMAND1 USER_COMMAND2 USER_COMMAND3)
 
 mv /home/$USER/.config/$program_name/$program_name.conf /home/$USER/.config/$program_name/$program_name.old
 cp /etc/$program_name/default.conf /home/$USER/.config/$program_name/$program_name.conf
@@ -177,7 +177,7 @@ function main_program {
 				sed -i 's/'$OLDB2SUM'/'$NEWB2SUM'/' $BUILDDIR/linux-ck/PKGBUILD
 			fi			
 			echo "$(date +"%Y-%m-%d_%H:%M") Starting kernel build ${!subarch_name}-$latest_version"
-			(cd $BUILDDIR/linux-ck && makepkg -C) > $BUILDDIR/linux-ck/linux-ck-${!subarch_name}-$latest_version.log
+			(cd $BUILDDIR/linux-ck && ( echo -e $MODULESSELECTION  | makepkg -C )) > $BUILDDIR/linux-ck/linux-ck-${!subarch_name}-$latest_version.log
 			echo "$(date +"%Y-%m-%d_%H:%M") End kernel build ${!subarch_name}-$latest_version"
 		fi
 	done
