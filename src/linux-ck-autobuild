@@ -79,7 +79,7 @@ fi
 
 function update_config {
 
-UPDATE=( editor BUILDDIR USE_MODPROBE_DB maxload makeflags USE_KERNEL_COMPRESS_METHOD WATCHDOG_INTERVAL TIMEOUT TIMEOUT_UNIT POSTPONED USER_COMMAND1 USER_COMMAND2 USER_COMMAND3)
+UPDATE=( editor BUILDDIR USE_MODPROBE_DB maxload makeflags USE_KERNEL_COMPRESS_METHOD NOMODULES WATCHDOG_INTERVAL TIMEOUT TIMEOUT_UNIT POSTPONED USER_COMMAND1 USER_COMMAND2 USER_COMMAND3)
 
 mv /home/$USER/.config/$program_name/$program_name.conf /home/$USER/.config/$program_name/$program_name.old
 cp /etc/$program_name/default.conf /home/$USER/.config/$program_name/$program_name.conf
@@ -162,7 +162,15 @@ function main_program {
 				sed -i 's/# CONFIG_KERNEL_'$USE_KERNEL_COMPRESS_METHOD' is not set/CONFIG_KERNEL_'$USE_KERNEL_COMPRESS_METHOD'=y/' $BUILDDIR/linux-ck/config
 				sed -i 's/CONFIG_KERNEL_ZSTD=y/# CONFIG_KERNEL_ZSTD is not set/' $BUILDDIR/linux-ck/config
 				editconfig="Yes"
-			fi			
+			fi
+			if [ -n "$NOMODULES" ]; then
+				for i in $NOMODULES
+				do
+					echo "Masking module $i..."
+					sed -i 's/'$i'=m/#'$i' is not set/' $BUILDDIR/linux-ck/config
+				done
+				editconfig="Yes"
+			fi		
 			if [ -n "editconfig" ]; then
 				OLDB2SUM=$(grep -A2 b2sum $BUILDDIR/linux-ck/PKGBUILD | tail -1 | cut -d"'" -f2)
 				NEWB2SUM=$(b2sum $BUILDDIR/linux-ck/config | cut -d" " -f1)
